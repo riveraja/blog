@@ -1,4 +1,4 @@
-#### Using Percona Server Linux Generic tarballs on CentOS 6
+#### Using Percona Server 5.5/5.6 Linux Generic tarballs on CentOS 6
 
 --- Download the binary tarball from [Percona Downloads page](https://www.percona.com/downloads/Percona-Server-5.6/).
 
