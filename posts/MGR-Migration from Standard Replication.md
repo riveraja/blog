@@ -2,11 +2,11 @@
 
 #### Offline migration from standard MySQL replication to MySQL Group Replication
 
-1. FTWRL on master server, and make sure the replicas are in sync
-2. Stop all applications and shutdown each mysql node
-3. Bootstrap one node, take note of 'SHOW MASTER STATUS' output
-4. Start other nodes and run 'RESET MASTER', 'SET @@global.gtid_purged={master_status}', 'CHANGE MASTER TO ... FOR CHANNEL', stop and start GROUP_REPLICATION
-5. Edit my.cnf on bootstrapped node and set 'group_replication_bootstrap_group = OFF'
+1) FTWRL on master server, and make sure the replicas are in sync
+2) Stop all applications and shutdown each mysql node
+3) Bootstrap one node, take note of 'SHOW MASTER STATUS' output
+4) Start other nodes and run 'RESET MASTER', 'SET @@global.gtid_purged={master_status}', 'CHANGE MASTER TO ... FOR CHANNEL', stop and start GROUP_REPLICATION
+5) Edit my.cnf on bootstrapped node and set 'group_replication_bootstrap_group = OFF'
 
 #### Online migration from standard MySQL replication to MySQL Group Replication
 
