@@ -5,8 +5,8 @@ MySQL Group Replication
 Download package installer from: http://labs.mysql.com/
 
 Test environment:
-OS version: CentOS 7 64bit
-MySQL version package: 
+- OS version: CentOS 7 64bit
+- MySQL version package: mysql-5.7.14-labs-gr080-el7-x86_64
 
 ```
 wget http://downloads.mysql.com/snapshots/pb/mysql-group-replication-0.8.0-labs/mysql-5.7.14-labs-gr080-el7-x86_64.rpm.tar.gz
