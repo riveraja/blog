@@ -16,16 +16,23 @@ Assumptions:
 - Standard replication without replication filtering
 
 1. Shutdown mysqld instance on node2
+
 2. Upgrade node2's mysql packages to 5.7.14 with group replication plugin
+
 3. Start mysqld instance on node2 with `group_replication_bootstrap_group = ON`
+
 4. Start group_replication `STOP GROUP_REPLICATION; START GROUP_REPLICATION;` this is the sequence since we have `group_replication_start_on_boot = ON`
+
 5. Shutdown mysqld instance on node3
+
 6. Wait for a minute and execute `STOP SLAVE; SHOW SLAVE STATUS\G START SLAVE;` on node2, note the Executed_Gtid_Set value on node2 as gtid_set
-  ```
-  Executed_Gtid_Set: 0440256a-6828-11e6-a097-00163ed83514:1-7351,
-  9bd4bf53-61bf-11e6-aa38-00163e772659:1-2,
-  c8690318-6828-11e6-88a7-00163e4aaba7:1
-  ```
+
+```
+Executed_Gtid_Set: 0440256a-6828-11e6-a097-00163ed83514:1-7351,
+9bd4bf53-61bf-11e6-aa38-00163e772659:1-2,
+c8690318-6828-11e6-88a7-00163e4aaba7:1
+```
+
 7. Upgrade node3's mysql packages to 5.7.14 with group replication plugin and add `skip-slave-start` in it's my.cnf
 8. Start mysqld instance on node3, start replication on node3
 
