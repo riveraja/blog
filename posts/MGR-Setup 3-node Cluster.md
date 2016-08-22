@@ -36,7 +36,7 @@ mysql> grant replication slave on *.* to 'rplusr'@'10.0.3.%';
 Query OK, 0 rows affected (0.00 sec)
 ```
 
-Check group replication status:
+Check group replication status on grprepl1:
 
 ```
 mysql> select * from performance_schema.replication_group_member_stats\G
@@ -62,7 +62,7 @@ mysql> select * from performance_schema.replication_group_members;
 1 row in set (0.00 sec)
 ```
 
-On the second node, start mysqld instance and change mysql root temporary password.
+On the second node, start mysqld instance and change mysql root temporary password then execute the following:
 
 ```
 mysql> reset master;
@@ -80,7 +80,7 @@ Query OK, 0 rows affected (0.00 sec)
 Query OK, 0 rows affected (5.65 sec)
 ```
 
-Check group replication status on node1.
+Check group replication status on grprepl1 again:
 
 ```
 mysql> select * from performance_schema.replication_group_members;
@@ -125,7 +125,7 @@ Query OK, 0 rows affected (0.00 sec)
 Query OK, 0 rows affected (2.33 sec)
 ```
 
-Check group replication status on node1 once more.
+Check group replication status on node1 once more to verify that the 3-node cluster is up and running.
 
 ```
 mysql> select * from performance_schema.replication_group_members;
@@ -151,4 +151,9 @@ TRANSACTIONS_COMMITTED_ALL_MEMBERS: 553987cc-6768-11e6-888a-00163ed83514:1-2,
 9bd4bf53-61bf-11e6-aa38-00163e772659:1-4
     LAST_CONFLICT_FREE_TRANSACTION: 9bd4bf53-61bf-11e6-aa38-00163e772659:3
 1 row in set (0.00 sec)
+```
+Finally, edit my.cnf on the bootstrapped node to:
+
+```
+group_replication_bootstrap_group = OFF
 ```
