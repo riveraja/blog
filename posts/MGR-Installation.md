@@ -16,13 +16,13 @@ tar xf mysql-5.7.14-labs-gr080-el7-x86_64.rpm.tar.gz
 yum localinstall mysql-community-libs-5.7.14-1.labs_gr080.el7.x86_64.rpm mysql-community-client-5.7.14-1.labs_gr080.el7.x86_64.rpm mysql-community-common-5.7.14-1.labs_gr080.el7.x86_64.rpm mysql-community-server-5.7.14-1.labs_gr080.el7.x86_64.rpm mysql-community-devel-5.7.14-1.labs_gr080.el7.x86_64.rpm mysql-community-libs-compat-5.7.14-1.labs_gr080.el7.x86_64.rpm
 ```
 
-Contents of /etc/my.cnf
+Contents of /etc/my.cnf for grprepl1 (node1). Based on [Quick Start Guide](http://mysqlhighavailability.com/mysql-group-replication-a-quick-start-guide/)
 ```
 # For advice on how to change settings please see
 # http://dev.mysql.com/doc/refman/5.7/en/server-configuration-defaults.html
 
 [mysqld]
-server-id=3
+server-id=1
 datadir=/var/lib/mysql
 socket=/var/lib/mysql/mysql.sock
 
@@ -46,7 +46,8 @@ sync-master-info = 1000
 sync-relay-log = 1000
 
 # group replication pre-requisites & recommendations
-log-bin=grprepl3-bin
+log-bin=grprepl1-bin
+relay-log=grprepl1-relay-bin
 binlog-format = ROW
 gtid-mode = ON
 enforce-gtid-consistency = ON
