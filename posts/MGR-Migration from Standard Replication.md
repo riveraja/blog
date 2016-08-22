@@ -197,7 +197,7 @@ mysql> select * from performance_schema.replication_group_members;
 
 23) Finally check group member status on all nodes.
 
-Node1
+Node1 (grprepl1)
 
 ```
 mysql> select * from performance_schema.replication_group_member_stats\G
@@ -229,7 +229,7 @@ c8690318-6828-11e6-88a7-00163e4aaba7:1
 1 row in set (0.00 sec)
 ```
 
-Node2
+Node2 (grprepl2)
 
 ```
 mysql> select * from performance_schema.replication_group_member_stats\G
@@ -248,7 +248,7 @@ c8690318-6828-11e6-88a7-00163e4aaba7:1
 1 row in set (0.01 sec)
 ```
 
-Node3
+Node3 (grprepl3)
 
 ```
 mysql> select * from performance_schema.replication_group_member_stats\G
