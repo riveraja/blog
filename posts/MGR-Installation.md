@@ -1,4 +1,4 @@
-MySQL Group Replication
+## MySQL Group Replication
 
 #### Installation
 
