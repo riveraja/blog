@@ -16,7 +16,8 @@ tar xf mysql-5.7.14-labs-gr080-el7-x86_64.rpm.tar.gz
 yum localinstall mysql-community-libs-5.7.14-1.labs_gr080.el7.x86_64.rpm mysql-community-client-5.7.14-1.labs_gr080.el7.x86_64.rpm mysql-community-common-5.7.14-1.labs_gr080.el7.x86_64.rpm mysql-community-server-5.7.14-1.labs_gr080.el7.x86_64.rpm mysql-community-devel-5.7.14-1.labs_gr080.el7.x86_64.rpm mysql-community-libs-compat-5.7.14-1.labs_gr080.el7.x86_64.rpm
 ```
 
-cat /etc/my.cnf
+Contents of /etc/my.cnf
+```
 # For advice on how to change settings please see
 # http://dev.mysql.com/doc/refman/5.7/en/server-configuration-defaults.html
 
@@ -66,3 +67,4 @@ group_replication_bootstrap_group = OFF
 group_replication_group_name = 9bd4bf53-61bf-11e6-aa38-00163e772659
 group_replication_local_address = '10.0.3.214:6606'
 group_replication_group_seeds = '10.0.3.205:6606,10.0.3.61:6606'
+```
