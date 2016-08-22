@@ -1,115 +1,154 @@
-#### Using Percona Server 5.5/5.6 Linux Generic tarballs on CentOS 6
+## MySQL Group Replication
 
---- Download the binary tarball from [Percona Downloads page](https://www.percona.com/downloads/Percona-Server-5.6/).
+#### Setting up a 3-node group replication cluster
 
-Make sure to download the correct binary tarball depending on your systems OpenSSL version.
-
-```
-openssl version
-OpenSSL 1.0.1e-fips 11 Feb 2013
-```
-This means I have to download Percona-Server-5.6.27-rel76.0-Linux.x86_64.ssl101.tar.gz from the site. In almost all cases you'd have to download this binary.
-
---- Uncompress the file with tar
-
-```# tar -zxf Percona-Server-5.6.27-rel76.0-Linux.x86_64.ssl101.tar.gz```
-
---- Install libaio and numactl, these are needed.
-
-```# yum install libaio numactl```
-
---- Create the data directory, default is /var/lib/mysql but you can make your own
-
-```# mkdir /srv/data -p```
-
---- Move uncompressed Percona Server binary to /opt/mysql
-
-```# mv Percona-Server-5.6.27-rel76.0-Linux.x86_64.ssl101 /opt/mysql```
-
---- Create a mysql system user and group user, then change ownership of the datadir to mysql
+Start mysqld instance on the bootstrap node (grprepl1) with:
 
 ```
-# groupadd mysql
-# useradd -r -g mysql mysql
-# chown -R mysql:mysql /srv/data
+group_replication_bootstrap_group = ON
 ```
 
---- Initialize the data directory using mysql_install_db
-
-```/opt/mysql/scripts/mysql_install_db --user=mysql --datadir=/srv/data```
-
---- Once everything went through without errors, create a my.cnf file.
+After initial startup, change mysql root temporary password and then stop then start group replication.
 
 ```
-[mysqld]
-datadir=/srv/data
-user=mysql
-pid-file=/srv/data/mysqld.pid
-socket=/srv/data/mysql.sock
-innodb-file-per-table
+STOP GROUP_REPLICATION; START GROUP_REPLICATION;
 ```
 
---- Start MySQL
-
-```# /opt/mysql/bin/mysqld_safe --defaults-file=/etc/my.cnf &```
-
---- Check error log and you should see something like this if everything is OK
+Execute 'SHOW MASTER STATUS' to take note of the Executed GTID Set.
 
 ```
-151227 23:56:33 mysqld_safe Starting mysqld daemon with databases from /srv/data
-2015-12-27 23:56:33 0 [Warning] TIMESTAMP with implicit DEFAULT value is deprecated. Please use --explicit_defaults_for_timestamp server option (see documentation for more details).
-2015-12-27 23:56:33 0 [Note] /opt/mysql/bin/mysqld (mysqld 5.6.27-76.0) starting as process 1100 ...
-2015-12-27 23:56:33 1100 [Note] Plugin 'FEDERATED' is disabled.
-2015-12-27 23:56:33 1100 [Note] InnoDB: Using atomics to ref count buffer pool pages
-2015-12-27 23:56:33 1100 [Note] InnoDB: The InnoDB memory heap is disabled
-2015-12-27 23:56:33 1100 [Note] InnoDB: Mutexes and rw_locks use GCC atomic builtins
-2015-12-27 23:56:33 1100 [Note] InnoDB: Memory barrier is not used
-2015-12-27 23:56:33 1100 [Note] InnoDB: Compressed tables use zlib 1.2.3
-2015-12-27 23:56:33 1100 [Note] InnoDB: Using Linux native AIO
-2015-12-27 23:56:33 1100 [Note] InnoDB: Using CPU crc32 instructions
-2015-12-27 23:56:33 1100 [Note] InnoDB: Initializing buffer pool, size = 128.0M
-2015-12-27 23:56:33 1100 [Note] InnoDB: Completed initialization of buffer pool
-2015-12-27 23:56:33 1100 [Note] InnoDB: Highest supported file format is Barracuda.
-2015-12-27 23:56:33 1100 [Note] InnoDB: 128 rollback segment(s) are active.
-2015-12-27 23:56:33 1100 [Note] InnoDB: Waiting for purge to start
-2015-12-27 23:56:33 1100 [Note] InnoDB:  Percona XtraDB (http://www.percona.com) 5.6.27-rel76.0 started; log sequence number 1626017
-2015-12-27 23:56:33 1100 [Note] RSA private key file not found: /srv/data//private_key.pem. Some authentication plugins will not work.
-2015-12-27 23:56:33 1100 [Note] RSA public key file not found: /srv/data//public_key.pem. Some authentication plugins will not work.
-2015-12-27 23:56:33 1100 [Note] Server hostname (bind-address): '*'; port: 3306
-2015-12-27 23:56:33 1100 [Note] IPv6 is available.
-2015-12-27 23:56:33 1100 [Note]   - '::' resolves to '::';
-2015-12-27 23:56:33 1100 [Note] Server socket created on IP: '::'.
-2015-12-27 23:56:33 1100 [Note] Event Scheduler: Loaded 0 events
-2015-12-27 23:56:33 1100 [Note] /opt/mysql/bin/mysqld: ready for connections.
-Version: '5.6.27-76.0'  socket: '/srv/data/mysql.sock'  port: 3306  Percona Server (GPL), Release 76.0, Revision 5498987
+mysql> show master status;
++---------------------+----------+--------------+------------------+----------------------------------------------------------------------------------+
+| File                | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set                                                                |
++---------------------+----------+--------------+------------------+----------------------------------------------------------------------------------+
+| grprepl1-bin.000002 |      750 |              |                  | 553987cc-6768-11e6-888a-00163ed83514:1-2, 9bd4bf53-61bf-11e6-aa38-00163e772659:1 |
++---------------------+----------+--------------+------------------+----------------------------------------------------------------------------------+
+1 row in set (0.00 sec)
 ```
 
-##### --- Add one more instance on the same machine
-
---- Create another data directory and give ownership to mysql system user
+Create the replication user on the bootstrapped node:
 
 ```
-# mkdir /srv/data2/
-# chown -R mysql:mysql /srv/data2
+mysql> create user 'rplusr'@'10.0.3.%' identified by 'rp1_Pwd#0';
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> grant replication slave on *.* to 'rplusr'@'10.0.3.%';
+Query OK, 0 rows affected (0.00 sec)
 ```
 
---- Initialize the data directory as follows
-
-`# /opt/mysql/scripts/mysql_install_db --user=mysql --datadir=/srv/data2`
-
---- Create a new my.cnf file for the new data directory (eg /etc/my2.cnf)
+Check group replication status:
 
 ```
-[mysqld]
-datadir=/srv/data2
-user=mysql
-pid-file=/srv/data2/mysqld.pid
-socket=/srv/data2/mysql.sock
-innodb-file-per-table
-port=3307
+mysql> select * from performance_schema.replication_group_member_stats\G
+*************************** 1. row ***************************
+                      CHANNEL_NAME: group_replication_applier
+                           VIEW_ID: 14717610423503000:1
+                         MEMBER_ID: 553987cc-6768-11e6-888a-00163ed83514
+       COUNT_TRANSACTIONS_IN_QUEUE: 0
+        COUNT_TRANSACTIONS_CHECKED: 2
+          COUNT_CONFLICTS_DETECTED: 0
+COUNT_TRANSACTIONS_ROWS_VALIDATING: 0
+TRANSACTIONS_COMMITTED_ALL_MEMBERS: 553987cc-6768-11e6-888a-00163ed83514:1-2,
+9bd4bf53-61bf-11e6-aa38-00163e772659:1-2
+    LAST_CONFLICT_FREE_TRANSACTION: 9bd4bf53-61bf-11e6-aa38-00163e772659:3
+1 row in set (0.00 sec)
+
+mysql> select * from performance_schema.replication_group_members;
++---------------------------+--------------------------------------+-------------+-------------+--------------+
+| CHANNEL_NAME              | MEMBER_ID                            | MEMBER_HOST | MEMBER_PORT | MEMBER_STATE |
++---------------------------+--------------------------------------+-------------+-------------+--------------+
+| group_replication_applier | 553987cc-6768-11e6-888a-00163ed83514 | grprepl1    |        3306 | ONLINE       |
++---------------------------+--------------------------------------+-------------+-------------+--------------+
+1 row in set (0.00 sec)
 ```
-Make sure to specify a different port so it won't conflict with the first instance which uses port 3306 as default port.
 
---- Start MySQL instance
+On the second node, start mysqld instance and change mysql root temporary password.
 
-`# /opt/mysql/bin/mysqld_safe --defaults-file=/etc/my2.cnf &`
+```
+mysql> reset master;
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> change master to master_user='rplusr',master_password='rp1_Pwd#0' for channel 'group_replication_recovery';
+Query OK, 0 rows affected, 2 warnings (0.05 sec)
+
+mysql> set @@global.gtid_purged='553987cc-6768-11e6-888a-00163ed83514:1-2,9bd4bf53-61bf-11e6-aa38-00163e772659:1';
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> stop group_replication; start group_replication;
+Query OK, 0 rows affected (0.00 sec)
+
+Query OK, 0 rows affected (5.65 sec)
+```
+
+Check group replication status on node1.
+
+```
+mysql> select * from performance_schema.replication_group_members;
++---------------------------+--------------------------------------+-------------+-------------+--------------+
+| CHANNEL_NAME              | MEMBER_ID                            | MEMBER_HOST | MEMBER_PORT | MEMBER_STATE |
++---------------------------+--------------------------------------+-------------+-------------+--------------+
+| group_replication_applier | 19654e63-6769-11e6-bda8-00163e4aaba7 | grprepl2    |        3306 | ONLINE       |
+| group_replication_applier | 553987cc-6768-11e6-888a-00163ed83514 | grprepl1    |        3306 | ONLINE       |
++---------------------------+--------------------------------------+-------------+-------------+--------------+
+2 rows in set (0.00 sec)
+
+mysql> select * from performance_schema.replication_group_member_stats\G
+*************************** 1. row ***************************
+                      CHANNEL_NAME: group_replication_applier
+                           VIEW_ID: 14717610423503000:2
+                         MEMBER_ID: 553987cc-6768-11e6-888a-00163ed83514
+       COUNT_TRANSACTIONS_IN_QUEUE: 0
+        COUNT_TRANSACTIONS_CHECKED: 2
+          COUNT_CONFLICTS_DETECTED: 0
+COUNT_TRANSACTIONS_ROWS_VALIDATING: 0
+TRANSACTIONS_COMMITTED_ALL_MEMBERS: 553987cc-6768-11e6-888a-00163ed83514:1-2,
+9bd4bf53-61bf-11e6-aa38-00163e772659:1-3
+    LAST_CONFLICT_FREE_TRANSACTION: 9bd4bf53-61bf-11e6-aa38-00163e772659:3
+1 row in set (0.00 sec)
+```
+
+On node3 do the same steps performed in node2.
+
+```
+mysql> reset master;
+Query OK, 0 rows affected (0.05 sec)
+
+mysql> change master to master_user='rplusr',master_password='rp1_Pwd#0' for channel 'group_replication_recovery';
+Query OK, 0 rows affected, 2 warnings (0.07 sec)
+
+mysql> set @@global.gtid_purged='553987cc-6768-11e6-888a-00163ed83514:1-2,9bd4bf53-61bf-11e6-aa38-00163e772659:1';
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> stop group_replication; start group_replication;
+Query OK, 0 rows affected (0.00 sec)
+
+Query OK, 0 rows affected (2.33 sec)
+```
+
+Check group replication status on node1 once more.
+
+```
+mysql> select * from performance_schema.replication_group_members;
++---------------------------+--------------------------------------+-------------+-------------+--------------+
+| CHANNEL_NAME              | MEMBER_ID                            | MEMBER_HOST | MEMBER_PORT | MEMBER_STATE |
++---------------------------+--------------------------------------+-------------+-------------+--------------+
+| group_replication_applier | 19654e63-6769-11e6-bda8-00163e4aaba7 | grprepl2    |        3306 | ONLINE       |
+| group_replication_applier | 553987cc-6768-11e6-888a-00163ed83514 | grprepl1    |        3306 | ONLINE       |
+| group_replication_applier | 579d2839-676a-11e6-b88e-00163ee2bfdb | grprepl3    |        3306 | ONLINE       |
++---------------------------+--------------------------------------+-------------+-------------+--------------+
+3 rows in set (0.00 sec)
+
+mysql> select * from performance_schema.replication_group_member_stats\G
+*************************** 1. row ***************************
+                      CHANNEL_NAME: group_replication_applier
+                           VIEW_ID: 14717610423503000:3
+                         MEMBER_ID: 553987cc-6768-11e6-888a-00163ed83514
+       COUNT_TRANSACTIONS_IN_QUEUE: 0
+        COUNT_TRANSACTIONS_CHECKED: 2
+          COUNT_CONFLICTS_DETECTED: 0
+COUNT_TRANSACTIONS_ROWS_VALIDATING: 0
+TRANSACTIONS_COMMITTED_ALL_MEMBERS: 553987cc-6768-11e6-888a-00163ed83514:1-2,
+9bd4bf53-61bf-11e6-aa38-00163e772659:1-4
+    LAST_CONFLICT_FREE_TRANSACTION: 9bd4bf53-61bf-11e6-aa38-00163e772659:3
+1 row in set (0.00 sec)
+```
