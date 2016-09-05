@@ -3,19 +3,21 @@
 #### Setting up a 3-node group replication cluster
 
 Start mysqld instance on the bootstrap node (grprepl1) with:
-
 ```
 group_replication_bootstrap_group = ON
 ```
 
-After initial startup, change mysql root temporary password and then stop then start group replication.
+You can either add that under my.cnf or execute from mysql console
+```
+SET GLOBAL group_replication_bootstrap_group = ON;
+```
 
+After initial startup, change mysql root temporary password and then stop then start group replication.
 ```
 STOP GROUP_REPLICATION; START GROUP_REPLICATION;
 ```
 
-Execute 'SHOW MASTER STATUS' to take note of the Executed GTID Set.
-
+Execute `SHOW MASTER STATUS` to take note of the Executed GTID Set.
 ```
 mysql> show master status;
 +---------------------+----------+--------------+------------------+----------------------------------------------------------------------------------+
@@ -27,7 +29,6 @@ mysql> show master status;
 ```
 
 Create the replication user on the bootstrapped node:
-
 ```
 mysql> create user 'rplusr'@'10.0.3.%' identified by 'rp1_Pwd#0';
 Query OK, 0 rows affected (0.01 sec)
@@ -37,7 +38,6 @@ Query OK, 0 rows affected (0.00 sec)
 ```
 
 Check group replication status on grprepl1:
-
 ```
 mysql> select * from performance_schema.replication_group_member_stats\G
 *************************** 1. row ***************************
