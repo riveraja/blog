@@ -1,6 +1,6 @@
-#### Testing MySQL Group Replication
+## Testing MySQL Group Replication
 
-###### Recovering single node down instance.
+#### Recovering single node down instance.
 
 To simulate this, I sent a kill (-9) signal to the mysqld process on node3.
 
@@ -238,7 +238,9 @@ group_replication_applier	144133ce-721d-11e6-a83f-00163e69abdd	gr1	3306	ONLINE
 group_replication_applier	64dcef67-723b-11e6-bc5b-00163ecd120f	gr2	3306	ONLINE
 ```
 
-However, a network connection problem on a particular node is not as easy to recover that a killed node.
+However, a network connection problem on a particular node is not as easy to recover than a killed node.
+
+#### Recovering a node after a network problem
 
 To simulate I used iptables to block then eventually unblock port 6606, this port is used for GCS (XCOM) group communication.
 
