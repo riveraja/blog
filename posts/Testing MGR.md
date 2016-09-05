@@ -313,3 +313,7 @@ group_replication_applier	0ee43ea3-723e-11e6-846b-00163ed93f10	gr3	3306	ONLINE
 group_replication_applier	144133ce-721d-11e6-a83f-00163e69abdd	gr1	3306	UNREACHABLE
 group_replication_applier	64dcef67-723b-11e6-bc5b-00163ecd120f	gr2	3306	UNREACHABLE
 ```
+From Oracle:
+```
+This is due to a reconfiguration related bug in the MySQL GCS (XCOM). We've only recently finally been able to track this down, and it should be fixed in the upcoming 0.9 "RC" release.
+```
