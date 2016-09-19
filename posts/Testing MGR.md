@@ -317,3 +317,5 @@ From Oracle:
 ```
 This is due to a reconfiguration related bug in the MySQL GCS (XCOM). We've only recently finally been able to track this down, and it should be fixed in the upcoming 0.9 "RC" release.
 ```
+UPDATE:
+After upgrading to MySQL 5.7.15 with Group Replication plugin 0.9 the problem did not manifest anymore.
